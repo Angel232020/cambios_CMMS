@@ -1,0 +1,74 @@
+using CMMS.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+
+namespace CMMS.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly CmmsContext _context;
+
+        public AccountController(CmmsContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Login(string correo, string contrasena)
+        {
+            // Buscar usuario SOLO por correo
+            var usuario = _context.Usuarios
+                .FirstOrDefault(u => u.Correo == correo);
+
+            if (usuario != null)
+            {
+                // Crear hasher
+                var hasher = new PasswordHasher<Usuario>();
+
+                // Validar contraseña hash
+                var resultado = hasher.VerifyHashedPassword(
+                    usuario,
+                    usuario.Contrasena,
+                    contrasena
+                );
+
+                // Si la contraseña es correcta
+                if (resultado == PasswordVerificationResult.Success)
+                {
+                    // Guardar datos en sesión
+                    HttpContext.Session.SetString(
+                        "IdRol",
+                        usuario.IdRol?.ToString() ?? ""
+                    );
+
+                    HttpContext.Session.SetString(
+                        "NombreUsuario",
+                        usuario.Nombre ?? "Usuario"
+                    );
+
+                    // Redirigir al menú
+                    return RedirectToAction("Index", "Menu");
+                }
+            }
+
+            // Credenciales incorrectas
+            ViewBag.Error = "Usuario o contraseña incorrectos";
+
+            return View();
+        }
+
+        // Logout
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+
+            return RedirectToAction("Login");
+        }
+    }
+}
