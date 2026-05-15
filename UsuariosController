@@ -1,0 +1,217 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using CMMS.Models;
+using Microsoft.AspNetCore.Identity;
+
+namespace CMMS.Controllers
+{
+    public class UsuariosController : Controller
+    {
+        private readonly CmmsContext _context;
+
+        public UsuariosController(CmmsContext context)
+        {
+            _context = context;
+        }
+
+        // GET: Usuarios
+        public async Task<IActionResult> Index()
+        {
+            var cmmsContext = _context.Usuarios.Include(u => u.IdRolNavigation);
+            return View(await cmmsContext.ToListAsync());
+        }
+
+        // GET: Usuarios/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var usuario = await _context.Usuarios
+                .Include(u => u.IdRolNavigation)
+                .FirstOrDefaultAsync(m => m.IdUsuario == id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            return View(usuario);
+        }
+
+        // GET: Usuarios/Create
+        public IActionResult Create()
+        {
+            ViewData["IdRol"] = new SelectList(_context.Rols, "IdRol", "IdRol");
+            return View();
+        }
+
+        // POST: Usuarios/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Create([Bind("IdUsuario,Nombre,Correo,Contrasena,IdRol")] Usuario usuario)
+{
+    if (ModelState.IsValid)
+    {
+        // Crear hasher
+        var hasher = new PasswordHasher<Usuario>();
+
+        // Convertir contraseña en hash
+        usuario.Contrasena = hasher.HashPassword(usuario, usuario.Contrasena);
+
+        // Guardar usuario
+        _context.Add(usuario);
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    ViewData["IdRol"] = new SelectList(_context.Rols, "IdRol", "IdRol", usuario.IdRol);
+
+    return View(usuario);
+}
+
+        // GET: Usuarios/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+            ViewData["IdRol"] = new SelectList(_context.Rols, "IdRol", "IdRol", usuario.IdRol);
+            return View(usuario);
+        }
+
+        // POST: Usuarios/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Edit(
+    int id,
+    [Bind("IdUsuario,Nombre,Correo,Contrasena,IdRol")] Usuario usuario)
+{
+    if (id != usuario.IdUsuario)
+    {
+        return NotFound();
+    }
+
+    if (ModelState.IsValid)
+    {
+        try
+        {
+            // Obtener usuario actual desde BD
+            var usuarioDb = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.IdUsuario == id);
+
+            if (usuarioDb == null)
+            {
+                return NotFound();
+            }
+
+            // Actualizar datos básicos
+            usuarioDb.Nombre = usuario.Nombre;
+            usuarioDb.Correo = usuario.Correo;
+            usuarioDb.IdRol = usuario.IdRol;
+
+            // SOLO si escribió nueva contraseña
+            if (!string.IsNullOrWhiteSpace(usuario.Contrasena))
+            {
+                var hasher = new PasswordHasher<Usuario>();
+
+                usuarioDb.Contrasena = hasher.HashPassword(
+                    usuarioDb,
+                    usuario.Contrasena
+                );
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UsuarioExists(usuario.IdUsuario))
+            {
+                return NotFound();
+            }
+
+            throw;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    ViewData["IdRol"] = new SelectList(
+        _context.Rols,
+        "IdRol",
+        "IdRol",
+        usuario.IdRol
+    );
+
+    return View(usuario);
+}
+
+        // GET: Usuarios/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var usuario = await _context.Usuarios
+                .Include(u => u.IdRolNavigation)
+                .FirstOrDefaultAsync(m => m.IdUsuario == id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            return View(usuario);
+        }
+
+        // POST: Usuarios/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+
+            if (usuario == null) return NotFound();
+
+            try
+            {
+                _context.Usuarios.Remove(usuario);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                // Guardamos el mensaje de error para mostrarlo en la vista
+                TempData["ErrorMessage"] = "No se puede eliminar: Este registro está vinculado a Órdenes de Trabajo o Historiales activos.";
+
+                // Redirigimos de vuelta a la misma página de confirmación
+                return RedirectToAction(nameof(Delete), new { id = id });
+            }
+        }
+
+        private bool UsuarioExists(int id)
+        {
+            return _context.Usuarios.Any(e => e.IdUsuario == id);
+        }
+    }
+}
