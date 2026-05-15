@@ -1,0 +1,179 @@
+@using Microsoft.AspNetCore.Http
+
+@{
+    // Obtener Rol desde sesión
+    var rolId = Context.Session.GetString("IdRol");
+}
+
+<link rel="stylesheet" href="~/css/All.css" />
+<link rel="stylesheet" href="~/css/MenuAsesor.css" />
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@* ===================================================== *@
+@* MENÚ GENERAL SEGÚN ROL                               *@
+@* ===================================================== *@
+
+@if (!string.IsNullOrEmpty(rolId))
+{
+    @* ========================================= *@
+    @* OPCIONES GENERALES PARA TODOS            *@
+    @* ========================================= *@
+
+    <li>
+        <a asp-controller="Asignacion" asp-action="Index">
+            <i class="bi bi-person-check"></i>
+            <span>Programación</span>
+        </a>
+    </li>
+
+    @* ========================================= *@
+    @* ADMINISTRADOR                            *@
+    @* ========================================= *@
+
+    @if (rolId == "1")
+    {
+        <li>
+            <a asp-controller="OrdenTrabajoes" asp-action="Index">
+                <i class="bi bi-wrench"></i>
+                <span>Ord. de Trabajo</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a asp-controller="OrdenTrabajoes" asp-action="Programar">
+                <i class="bi bi-calendar-plus"></i>
+                <span>Programar Orden</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Maquinas" asp-action="Index">
+                <i class="bi bi-gear"></i>
+                <span>Máquinas</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Clientes" asp-action="Index">
+                <i class="bi bi-people"></i>
+                <span>Clientes</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="DetalleOrden" asp-action="Index">
+                <i class="bi bi-folder2-open"></i>
+                <span>Detalle de Orden</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Reportes" asp-action="Index">
+                <i class="bi bi-bar-chart"></i>
+                <span>Reportes</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Calendario" asp-action="Index">
+                <i class="bi bi-calendar"></i>
+                <span>Calendario</span>
+            </a>
+        </li>
+
+        @* NUEVO MÓDULO TIPO DE SERVICIO *@
+        <li>
+            <a asp-controller="TipoServicios" asp-action="Index">
+                <i class="bi bi-tools"></i>
+                <span>Tipo de Servicio</span>
+            </a>
+        </li>
+    }
+
+    @* ========================================= *@
+    @* JEFE TÉCNICO / TÉCNICO                   *@
+    @* ========================================= *@
+
+    @if (rolId == "2")
+    {
+        <li>
+            <a asp-controller="OrdenTrabajoes" asp-action="Index">
+                <i class="bi bi-wrench"></i>
+                <span>Ord. de Trabajo</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Maquinas" asp-action="Index">
+                <i class="bi bi-gear"></i>
+                <span>Máquinas</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Clientes" asp-action="Index">
+                <i class="bi bi-people"></i>
+                <span>Clientes</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Tecnicoes" asp-action="Index">
+                <i class="bi bi-person-gear"></i>
+                <span>Técnicos</span>
+            </a>
+        </li>
+
+        @* NUEVO MÓDULO TIPO DE SERVICIO *@
+        <li>
+            <a asp-controller="TipoServicios" asp-action="Index">
+                <i class="bi bi-tools"></i>
+                <span>Tipo de Servicio</span>
+            </a>
+        </li>
+    }
+
+    @* ========================================= *@
+    @* JEFE DE INVENTARIO                       *@
+    @* ========================================= *@
+
+    @if (rolId == "3")
+    {
+        <li>
+            <a asp-controller="Repuestoes" asp-action="Index">
+                <i class="bi bi-box-seam"></i>
+                <span>Inventario Repuestos</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="OrdenTrabajoes" asp-action="Index">
+                <i class="bi bi-wrench"></i>
+                <span>Ord. de Trabajo</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="SolicitudRepuestoes" asp-action="Index">
+                <i class="bi bi-clipboard-check"></i>
+                <span>Solicitudes de Repuesto</span>
+            </a>
+        </li>
+    }
+
+    @* ========================================= *@
+    @* GESTIÓN DE USUARIOS                      *@
+    @* ========================================= *@
+
+    @if (rolId == "4")
+    {
+        <li>
+            <a asp-controller="Usuarios" asp-action="Index">
+                <i class="bi bi-person-vcard"></i>
+                <span>Usuarios</span>
+            </a>
+        </li>
+    }
+}
